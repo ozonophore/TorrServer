@@ -18,7 +18,6 @@ import (
 	"github.com/pkg/browser"
 
 	"server"
-	"server/docs"
 	"server/log"
 	"server/settings"
 	"server/torr"
@@ -76,7 +75,6 @@ func main() {
 	if params.RDB {
 		log.TLogln("Running in Read-only DB mode!")
 	}
-	docs.SwaggerInfo.Version = version.Version
 
 	dnsResolve()
 	Preconfig(params.DontKill)

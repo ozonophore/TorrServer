@@ -1,6 +1,8 @@
 package web
 
 import (
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net"
 	"os"
 	"sort"
@@ -23,9 +25,6 @@ import (
 	"server/web/blocker"
 	"server/web/pages"
 	"server/web/sslcerts"
-
-	swaggerFiles "github.com/swaggo/files"     // swagger embed files
-	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 var (
@@ -74,6 +73,7 @@ func Start() {
 	auth.SetupAuth(route)
 
 	route.GET("/echo", echo)
+	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api.SetupRoute(route)
 	msx.SetupRoute(route)
@@ -82,8 +82,6 @@ func Start() {
 	if settings.BTsets.EnableDLNA {
 		dlna.Start()
 	}
-
-	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// check if https enabled
 	if settings.Ssl {

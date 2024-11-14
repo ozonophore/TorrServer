@@ -12,10 +12,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func SetupRoute(route gin.IRouter) {
-	authorized := route.Group("/", auth.CheckAuth())
+func SetupRoute(engine *gin.Engine) {
+	authorized := engine.Group("/", auth.CheckAuth())
 
-	webPagesAuth := route.Group("/", func() gin.HandlerFunc {
+	webPagesAuth := engine.Group("/", func() gin.HandlerFunc {
 		return func(c *gin.Context) {
 			if slices.Contains([]string{"/site.webmanifest"}, c.FullPath()) {
 				return
@@ -24,9 +24,9 @@ func SetupRoute(route gin.IRouter) {
 		}
 	}())
 
-	template.RouteWebPages(webPagesAuth)
 	authorized.GET("/stat", statPage)
 	authorized.GET("/magnets", getTorrents)
+	template.RouteWebPages(webPagesAuth, engine)
 }
 
 // stat godoc

@@ -2,11 +2,47 @@ package template
 
 import (
 	"crypto/md5"
+	"embed"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"server/log"
+	"strings"
 )
 
-func RouteWebPages(route gin.IRouter) {
+//go:embed pages/*
+//go:embed pages/static/js/*
+//go:embed docs/*
+var files embed.FS
+
+//go:embed pages/index.html
+var Indexhtml []byte
+
+func ReadFileByName(name string) []byte {
+	return readFileByPath("pages/" + name)
+}
+
+func readFileByPath(name string) []byte {
+	var fileData, err = files.ReadFile(name)
+
+	if err != nil {
+		log.TLogln("Failed to read file", name, err)
+		return nil
+	}
+	return fileData
+}
+
+func handleSwaggerfunc(fileName string, c *gin.Context) {
+	fileData := readFileByPath("docs" + fileName)
+	if fileData == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	contentType := http.DetectContentType(fileData)
+	c.Data(http.StatusOK, contentType, fileData)
+}
+
+func RouteWebPages(route gin.IRouter, engine *gin.Engine) {
 	route.GET("/", func(c *gin.Context) {
 		etag := fmt.Sprintf("%x", md5.Sum(Indexhtml))
 		c.Header("Cache-Control", "public, max-age=31536000")
@@ -14,318 +50,39 @@ func RouteWebPages(route gin.IRouter) {
 		c.Data(200, "text/html; charset=utf-8", Indexhtml)
 	})
 
-	route.GET("/apple-splash-1125-2436.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash11252436jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash11252436jpg)
+	route.GET("/swagger-ui/*any", func(c *gin.Context) {
+		fileName := c.Param("any")
+		if fileName == "/" || strings.EqualFold(fileName, "/index.html") {
+			fileName = "/redoc.html"
+		}
+		handleSwaggerfunc(fileName, c)
 	})
 
-	route.GET("/apple-splash-1136-640.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash1136640jpg))
+	//route.GET("/swagger-ui/swagger.yaml", func(c *gin.Context) {
+	//	handleSwaggerfunc("swagger.yaml", c)
+	//})
+	//
+	//route.GET("/swagger-ui/redoc.standalone.js", func(c *gin.Context) {
+	//	handleSwaggerfunc("redoc.standalone.js", c)
+	//})
+
+	engine.NoRoute(func(c *gin.Context) {
+		filePath := c.Request.URL.Path
+		fileData, err := files.ReadFile("pages" + filePath)
+		if err != nil {
+			// If the file doesn't exist, return 404
+			c.Status(http.StatusNotFound)
+			return
+		}
+		contentType := http.DetectContentType(fileData)
+
+		// Set headers for caching and ETag
+		etag := fmt.Sprintf("%x", md5.Sum(fileData))
 		c.Header("Cache-Control", "public, max-age=31536000")
 		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash1136640jpg)
+
+		// Send the file with the correct MIME type
+		c.Data(http.StatusOK, contentType, fileData)
 	})
 
-	route.GET("/apple-splash-1170-2532.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash11702532jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash11702532jpg)
-	})
-
-	route.GET("/apple-splash-1242-2208.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash12422208jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash12422208jpg)
-	})
-
-	route.GET("/apple-splash-1242-2688.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash12422688jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash12422688jpg)
-	})
-
-	route.GET("/apple-splash-1284-2778.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash12842778jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash12842778jpg)
-	})
-
-	route.GET("/apple-splash-1334-750.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash1334750jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash1334750jpg)
-	})
-
-	route.GET("/apple-splash-1536-2048.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash15362048jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash15362048jpg)
-	})
-
-	route.GET("/apple-splash-1620-2160.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash16202160jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash16202160jpg)
-	})
-
-	route.GET("/apple-splash-1668-2224.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash16682224jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash16682224jpg)
-	})
-
-	route.GET("/apple-splash-1668-2388.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash16682388jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash16682388jpg)
-	})
-
-	route.GET("/apple-splash-1792-828.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash1792828jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash1792828jpg)
-	})
-
-	route.GET("/apple-splash-2048-1536.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash20481536jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash20481536jpg)
-	})
-
-	route.GET("/apple-splash-2048-2732.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash20482732jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash20482732jpg)
-	})
-
-	route.GET("/apple-splash-2160-1620.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash21601620jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash21601620jpg)
-	})
-
-	route.GET("/apple-splash-2208-1242.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash22081242jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash22081242jpg)
-	})
-
-	route.GET("/apple-splash-2224-1668.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash22241668jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash22241668jpg)
-	})
-
-	route.GET("/apple-splash-2388-1668.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash23881668jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash23881668jpg)
-	})
-
-	route.GET("/apple-splash-2436-1125.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash24361125jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash24361125jpg)
-	})
-
-	route.GET("/apple-splash-2532-1170.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash25321170jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash25321170jpg)
-	})
-
-	route.GET("/apple-splash-2688-1242.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash26881242jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash26881242jpg)
-	})
-
-	route.GET("/apple-splash-2732-2048.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash27322048jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash27322048jpg)
-	})
-
-	route.GET("/apple-splash-2778-1284.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash27781284jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash27781284jpg)
-	})
-
-	route.GET("/apple-splash-640-1136.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash6401136jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash6401136jpg)
-	})
-
-	route.GET("/apple-splash-750-1334.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash7501334jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash7501334jpg)
-	})
-
-	route.GET("/apple-splash-828-1792.jpg", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Applesplash8281792jpg))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/jpeg", Applesplash8281792jpg)
-	})
-
-	route.GET("/asset-manifest.json", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Assetmanifestjson))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/json", Assetmanifestjson)
-	})
-
-	route.GET("/browserconfig.xml", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Browserconfigxml))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/xml; charset=utf-8", Browserconfigxml)
-	})
-
-	route.GET("/dlnaicon-120.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Dlnaicon120png))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Dlnaicon120png)
-	})
-
-	route.GET("/dlnaicon-48.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Dlnaicon48png))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Dlnaicon48png)
-	})
-
-	route.GET("/favicon-16x16.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Favicon16x16png))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Favicon16x16png)
-	})
-
-	route.GET("/favicon-32x32.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Favicon32x32png))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Favicon32x32png)
-	})
-
-	route.GET("/favicon.ico", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Faviconico))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/vnd.microsoft.icon", Faviconico)
-	})
-
-	route.GET("/icon.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Iconpng))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Iconpng)
-	})
-
-	route.GET("/index.html", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Indexhtml))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "text/html; charset=utf-8", Indexhtml)
-	})
-
-	route.GET("/logo.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Logopng))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Logopng)
-	})
-
-	route.GET("/mstile-150x150.png", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Mstile150x150png))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "image/png", Mstile150x150png)
-	})
-
-	route.GET("/site.webmanifest", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Sitewebmanifest))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/manifest+json", Sitewebmanifest)
-	})
-
-	route.GET("/static/js/2.15e75e72.chunk.js", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjs215e75e72chunkjs))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/javascript; charset=utf-8", Staticjs215e75e72chunkjs)
-	})
-
-	route.GET("/static/js/2.15e75e72.chunk.js.LICENSE.txt", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjs215e75e72chunkjsLICENSEtxt))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "text/plain; charset=utf-8", Staticjs215e75e72chunkjsLICENSEtxt)
-	})
-
-	route.GET("/static/js/2.15e75e72.chunk.js.map", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjs215e75e72chunkjsmap))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/json", Staticjs215e75e72chunkjsmap)
-	})
-
-	route.GET("/static/js/main.60265001.chunk.js", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjsmain60265001chunkjs))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/javascript; charset=utf-8", Staticjsmain60265001chunkjs)
-	})
-
-	route.GET("/static/js/main.60265001.chunk.js.map", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjsmain60265001chunkjsmap))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/json", Staticjsmain60265001chunkjsmap)
-	})
-
-	route.GET("/static/js/runtime-main.f542387e.js", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjsruntimemainf542387ejs))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/javascript; charset=utf-8", Staticjsruntimemainf542387ejs)
-	})
-
-	route.GET("/static/js/runtime-main.f542387e.js.map", func(c *gin.Context) {
-		etag := fmt.Sprintf("%x", md5.Sum(Staticjsruntimemainf542387ejsmap))
-		c.Header("Cache-Control", "public, max-age=31536000")
-		c.Header("ETag", etag)
-		c.Data(200, "application/json", Staticjsruntimemainf542387ejsmap)
-	})
 }

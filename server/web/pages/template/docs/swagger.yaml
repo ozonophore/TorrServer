@@ -1,0 +1,812 @@
+openapi: 3.0.0
+info:
+  title: Swagger Torrserver API
+  description: Torrent streaming server.
+  version: '{version.Version}'
+  license:
+    name: GPL 3.0
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+paths:
+  /cache:
+    post:
+      summary: Return cache stats
+      description: Return cache stats.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CacheRequest'
+      responses:
+        "200":
+          description: Cache stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheState'
+      tags:
+        - API
+  /download/{size}:
+    get:
+      summary: Generates test file of given size
+      description: Download the test file of given size (for speed testing purpose).
+      parameters:
+        - name: size
+          in: path
+          required: true
+          description: Test file size (in MB)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - API
+  /echo:
+    get:
+      summary: Tests server status
+      description: Tests whether server is alive or not
+      responses:
+        "200":
+          description: Server version
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - API
+  /ffp/{hash}/{id}:
+    get:
+      summary: Gather informations using ffprobe
+      description: Gather informations using ffprobe.
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: Torrent hash
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: File index in torrent
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Data returned from ffprobe
+      tags:
+        - API
+  /magnets:
+    get:
+      summary: Get HTML of magnet links
+      description: Get HTML of magnet links.
+      responses:
+        "200":
+          description: HTML with Magnet links
+          content:
+            text/html:
+              schema:
+                type: string
+      tags:
+        - Pages
+  /play/{hash}/{id}:
+    get:
+      summary: Play given torrent referenced by hash
+      description: Play given torrent referenced by hash.
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: Torrent hash
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          description: File index in torrent
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Torrent data
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - API
+  /playlist:
+    get:
+      summary: Get HTTP link of torrent in M3U list
+      description: Get HTTP link of torrent in M3U list.
+      parameters:
+        - name: hash
+          in: query
+          required: true
+          description: Torrent hash
+          schema:
+            type: string
+        - name: fromlast
+          in: query
+          description: From last play file
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            audio/x-mpegurl:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - API
+  /playlistall/all.m3u:
+    get:
+      summary: Get a M3U playlist with all torrents
+      description: Retrieve all torrents and generates a bundled M3U playlist.
+      responses:
+        "200":
+          description: OK
+          content:
+            audio/x-mpegurl:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - API
+  /search:
+    get:
+      summary: Makes a rutor search
+      description: Makes a rutor search.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Rutor query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Rutor torrent search result(s)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TorrentDetails'
+      tags:
+        - API
+  /settings:
+    post:
+      summary: Get / Set server settings
+      description: Allow to get or set server settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingsRequest'
+      responses:
+        "200":
+          description: Settings JSON or nothing. Depends on what action has been asked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BTSettings'
+      tags:
+        - API
+  /shutdown:
+    get:
+      summary: Shuts down server
+      description: Gracefully shuts down server after 1 second.
+      responses:
+        "200":
+          description: OK
+      tags:
+        - API
+  /stat:
+    get:
+      summary: TorrServer Statistics
+      description: Show server and torrents statistics.
+      responses:
+        "200":
+          description: TorrServer statistics
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - Pages
+  /stream:
+    get:
+      summary: Multi usage endpoint
+      description: Multi usage endpoint.
+      parameters:
+        - name: link
+          in: query
+          required: true
+          description: Magnet/hash/link to torrent
+          schema:
+            type: string
+        - name: index
+          in: query
+          description: File index in torrent
+          schema:
+            type: string
+        - name: preload
+          in: query
+          description: Should preload torrent
+          schema:
+            type: string
+        - name: stat
+          in: query
+          description: Get statistics from torrent
+          schema:
+            type: string
+        - name: save
+          in: query
+          description: Should save torrent
+          schema:
+            type: string
+        - name: m3u
+          in: query
+          description: Get torrent as M3U playlist
+          schema:
+            type: string
+        - name: fromlast
+          in: query
+          description: Get M3U from last played file
+          schema:
+            type: string
+        - name: play
+          in: query
+          description: Start stream torrent
+          schema:
+            type: string
+        - name: title
+          in: query
+          description: Set title of torrent
+          schema:
+            type: string
+        - name: poster
+          in: query
+          description: Set poster link of torrent
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: "Set category of torrent, used in web: movie, tv, music, other"
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Data returned according to query"
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      tags:
+        - API
+  /torrent/upload:
+    post:
+      summary: "Add .torrent file"
+      description: "Only one file support."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Torrent file to insert"
+                save:
+                  type: string
+                  description: "Save to DB"
+                title:
+                  type: string
+                  description: "Torrent title"
+                category:
+                  type: string
+                  description: "Torrent category"
+                poster:
+                  type: string
+                  description: "Torrent poster"
+                data:
+                  type: string
+                  description: "Torrent data"
+      responses:
+        "200":
+          description: Torrent status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TorrentStatus'
+      tags:
+        - API
+  /torrents:
+    post:
+      summary: Handle torrents informations
+      description: Allow to list, add, remove, get, set, drop, wipe torrents on server. The action depends of what has been asked.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TorrentRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TorrentInfoResponse'
+      tags:
+        - API
+  /viewed:
+    post:
+      summary: Set / List / Remove viewed torrents
+      description: Allow to set, list or remove viewed torrents from server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewedRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ViewedStatus'
+      tags:
+        - API
+components:
+  schemas:
+    CacheRequest:
+      type: object
+      properties:
+        action:
+          type: string
+        hash:
+          type: string
+    SettingsRequest:
+      type: object
+      properties:
+        action:
+          type: string
+        sets:
+          $ref: '#/components/schemas/BTSettings'
+    TorrentRequest:
+      type: object
+      properties:
+        action:
+          type: string
+        category:
+          type: string
+        data:
+          type: string
+        hash:
+          type: string
+        link:
+          type: string
+        poster:
+          type: string
+        save_to_db:
+          type: boolean
+        title:
+          type: string
+    TorrentInfoResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Name of the torrent
+        category:
+          type: string
+          description: Category of the torrent
+        poster:
+          type: string
+          format: uri
+          description: Link to the poster of the torrent
+        data:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp of the torrent
+        name:
+          type: string
+          description: Name of the torrent
+        hash:
+          type: string
+          description: Hash of the torrent file
+        stat:
+          type: integer
+          description: Status of the torrent
+        stat_string:
+          type: string
+          description: Description of the status
+        loaded_size:
+          type: integer
+          format: int64
+          description: Size of the loaded torrent
+        torrent_size:
+          type: integer
+          format: int64
+          description: Size of the torrent file
+        preloaded_bytes:
+          type: integer
+          format: int64
+          description: Size of the preloaded bytes
+        preload_size:
+          type: integer
+          format: int64
+          description: Size of the preload
+        download_speed:
+          type: number
+          format: float
+          description: Download speed of the torrent
+        upload_speed:
+          type: number
+          format: float
+          description: Upload speed of the torrent
+        total_peers:
+          type: integer
+          description: Total peers of the torrent
+        pending_peers:
+          type: integer
+          description: Pending peers of the torrent
+        active_peers:
+          type: integer
+          description: Active peers of the torrent
+        connected_seeders:
+          type: integer
+          description: Connected seeders of the torrent
+        half_open_peers:
+          type: integer
+          description: Half open peers of the torrent
+        bytes_written:
+          type: integer
+          format: int64
+          description: Bytes written of the torrent
+        bytes_written_data:
+          type: integer
+          format: int64
+          description: Bytes written data of the torrent
+        bytes_read:
+          type: integer
+          format: int64
+          description: Bytes read of the torrent
+        bytes_read_data:
+          type: integer
+          format: int64
+          description: Bytes read data of the torrent
+        bytes_read_useful_data:
+          type: integer
+          format: int64
+          description: Bytes read useful data of the torrent
+        chunks_written:
+          type: integer
+          format: int64
+          description: Chunks written of the torrent
+        chunks_read:
+          type: integer
+          format: int64
+          description: Chunks read of the torrent
+        chunks_read_useful:
+          type: integer
+          format: int64
+          description: Chunks read useful of the torrent
+        chunks_read_wasted:
+          type: integer
+          format: int64
+          description: Chunks read wasted of the torrent
+        pieces_dirtied_good:
+          type: integer
+          format: int64
+          description: Pieces dirtied good of the torrent
+        pieces_dirtied_bad:
+          type: integer
+          format: int64
+          description: Pieces dirtied bad of the torrent
+        duration_seconds:
+          type: number
+          format: float
+          description: Duration seconds of the torrent
+        bit_rate:
+            type: string
+            description: Bit rate of the torrent
+
+    ViewedRequest:
+      type: object
+      properties:
+        action:
+          type: string
+        file_index:
+          type: integer
+        hash:
+          type: string
+    TorrentDetails:
+      type: object
+      properties:
+        audioQuality:
+          type: integer
+        categories:
+          type: string
+        createDate:
+          type: string
+        hash:
+          type: string
+        imdbid:
+          type: string
+        link:
+          type: string
+        magnet:
+          type: string
+        name:
+          type: string
+        names:
+          type: array
+          items:
+            type: string
+        peer:
+          type: integer
+        seed:
+          type: integer
+        size:
+          type: string
+        title:
+          type: string
+        tracker:
+          type: string
+        videoQuality:
+          type: integer
+        year:
+          type: integer
+    BTSettings:
+      type: object
+      properties:
+        CacheSize:
+          type: integer
+          description: Cache
+        ConnectionsLimit:
+          type: integer
+        DisableDHT:
+          type: boolean
+        DisablePEX:
+          type: boolean
+        DisableTCP:
+          type: boolean
+        DisableUPNP:
+          type: boolean
+        DisableUTP:
+          type: boolean
+        DisableUpload:
+          type: boolean
+        DownloadRateLimit:
+          type: integer
+          description: in kb, 0 - inf
+        EnableDLNA:
+          type: boolean
+          description: DLNA
+        EnableDebug:
+          type: boolean
+          description: debug logs
+        EnableIPv6:
+          type: boolean
+          description: BT Config
+        EnableRutorSearch:
+          type: boolean
+          description: Rutor
+        ForceEncrypt:
+          type: boolean
+          description: Torrent
+        FriendlyName:
+          type: string
+        PeersListenPort:
+          type: integer
+        PreloadCache:
+          type: integer
+          description: in percent
+        ReaderReadAHead:
+          type: integer
+          description: in percent, 5%-100%, [...S__X__E...] [S-E] not clean
+        RemoveCacheOnDrop:
+          type: boolean
+        ResponsiveMode:
+          type: boolean
+          description: Reader
+        RetrackersMode:
+          type: integer
+          description: 0 - don`t add, 1 - add retrackers (def), 2 - remove retrackers 3 - replace retrackers
+        SslCert:
+          type: string
+        SslKey:
+          type: string
+        SslPort:
+          type: integer
+          description: HTTPS
+        TorrentDisconnectTimeout:
+          type: integer
+          description: in seconds
+        TorrentsSavePath:
+          type: string
+        UploadRateLimit:
+          type: integer
+          description: in kb, 0 - inf
+        UseDisk:
+          type: boolean
+          description: Disk
+    ViewedStatus:
+      type: object
+      properties:
+        file_index:
+          type: integer
+        hash:
+          type: string
+    CacheState:
+      type: object
+      properties:
+        capacity:
+          type: integer
+        filled:
+          type: integer
+        hash:
+          type: string
+        pieces:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ItemState'
+        piecesCount:
+          type: integer
+        piecesLength:
+          type: integer
+        readers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReaderState'
+        torrent:
+          $ref: '#/components/schemas/TorrentStatus'
+    ItemState:
+      type: object
+      properties:
+        completed:
+          type: boolean
+        id:
+          type: integer
+        length:
+          type: integer
+        priority:
+          type: integer
+        size:
+          type: integer
+    ReaderState:
+      type: object
+      properties:
+        end:
+          type: integer
+        reader:
+          type: integer
+        start:
+          type: integer
+    TorrentFileStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+        length:
+          type: integer
+        path:
+          type: string
+    TorrentStatusEnum:
+      type: integer
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      x-enum-varnames:
+        - TorrentAdded
+        - TorrentGettingInfo
+        - TorrentPreload
+        - TorrentWorking
+        - TorrentClosed
+        - TorrentInDB
+    TorrentStatus:
+      type: object
+      properties:
+        active_peers:
+          type: integer
+        bit_rate:
+          type: string
+        bytes_read:
+          type: integer
+        bytes_read_data:
+          type: integer
+        bytes_read_useful_data:
+          type: integer
+        bytes_written:
+          type: integer
+        bytes_written_data:
+          type: integer
+        category:
+          type: string
+        chunks_read:
+          type: integer
+        chunks_read_useful:
+          type: integer
+        chunks_read_wasted:
+          type: integer
+        chunks_written:
+          type: integer
+        connected_seeders:
+          type: integer
+        data:
+          type: string
+        download_speed:
+          type: number
+        duration_seconds:
+          type: number
+        file_stats:
+          type: array
+          items:
+            $ref: '#/components/schemas/TorrentFileStatus'
+        half_open_peers:
+          type: integer
+        hash:
+          type: string
+        loaded_size:
+          type: integer
+        name:
+          type: string
+        pending_peers:
+          type: integer
+        pieces_dirtied_bad:
+          type: integer
+        pieces_dirtied_good:
+          type: integer
+        poster:
+          type: string
+        preload_size:
+          type: integer
+        preloaded_bytes:
+          type: integer
+        stat:
+          $ref: '#/components/schemas/TorrentStatusEnum'
+        stat_string:
+          type: string
+        timestamp:
+          type: integer
+        title:
+          type: string
+        torrent_size:
+          type: integer
+        total_peers:
+          type: integer
+        upload_speed:
+          type: number
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic

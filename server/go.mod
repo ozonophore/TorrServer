@@ -1,6 +1,8 @@
 module server
 
-go 1.20
+go 1.21
+
+toolchain go1.23.1
 
 replace github.com/anacrolix/torrent v1.54.1 => github.com/tsynik/torrent v1.2.22
 
@@ -20,7 +22,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
-	github.com/swaggo/swag v1.16.3
 	go.etcd.io/bbolt v1.3.10
 	golang.org/x/exp v0.0.0-20240531132922-fd00a4e0eefc
 	golang.org/x/image v0.18.0
@@ -79,6 +80,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
+	github.com/swaggo/swag v1.16.3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
